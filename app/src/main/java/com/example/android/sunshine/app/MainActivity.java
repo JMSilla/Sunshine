@@ -43,6 +43,7 @@ public class MainActivity extends AppCompatActivity implements ForecastFragment.
                 .findFragmentById(R.id.fragment_forecast);
         forecastFragment.setForecastItemCallback(this);
         forecastFragment.setShowDifferentTodayElement(!twoPanes);
+
     }
 
     @Override

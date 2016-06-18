@@ -155,10 +155,20 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         forecastAdapter.swapCursor(data);
-        ListView forecastListView = (ListView) getView().findViewById(R.id.listview_forecast);
+        final ListView forecastListView = (ListView) getView().findViewById(R.id.listview_forecast);
 
         if (selectedPosition != ListView.INVALID_POSITION)
             forecastListView.setSelection(selectedPosition);
+        else if (!showDifferentTodayElement) {
+            forecastListView.post(new Runnable() {
+                @Override
+                public void run() {
+                    forecastListView.performItemClick(
+                            forecastAdapter.getView(0, null, null), 0, forecastAdapter.getItemId(0)
+                    );
+                }
+            });
+        }
     }
 
     @Override
