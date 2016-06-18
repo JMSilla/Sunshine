@@ -81,6 +81,7 @@ public class ForecastAdapter extends CursorAdapter {
         int weatherId = cursor.getInt(ForecastFragment.COL_WEATHER_CONDITION_ID);
         boolean isMetric = Utility.isMetric(context);
         int iconResource;
+        String dateText;
 
         if (showDifferentTodayElement && getItemViewType(cursor.getPosition()) == VIEW_TYPE_TODAY)
             iconResource = Utility.getArtResourceForWeatherCondition(weatherId);
@@ -88,8 +89,17 @@ public class ForecastAdapter extends CursorAdapter {
             iconResource = Utility.getIconResourceForWeatherCondition(weatherId);
 
         holder.iconView.setImageResource(iconResource);
-        holder.textViewDate.setText(Utility.getFriendlyDayString(context,
-                cursor.getLong(ForecastFragment.COL_WEATHER_DATE)));
+
+        if (showDifferentTodayElement) {
+            dateText = Utility.getFriendlyDayString(context,
+                    cursor.getLong(ForecastFragment.COL_WEATHER_DATE));
+        }
+        else {
+            dateText = Utility.getDayName(context, cursor.getLong(ForecastFragment.COL_WEATHER_DATE));
+        }
+
+        holder.textViewDate.setText(dateText);
+
         holder.textViewForecast.setText(cursor.getString(ForecastFragment.COL_WEATHER_DESC));
         holder.textViewHigh.setText(Utility.formatTemperature(context, cursor.getDouble(
                 ForecastFragment.COL_WEATHER_MAX_TEMP), isMetric));
