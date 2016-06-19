@@ -152,6 +152,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         highTextview.setText(high);
         lowTextview.setText(low);
         icon.setImageResource(Utility.getArtResourceForWeatherCondition(weatherId));
+        icon.setContentDescription(weatherDescription);
         forecastTextview.setText(weatherDescription);
         humidityTextview.setText(this.getString(R.string.format_humidity,
                 data.getFloat(COL_WEATHER_HUMIDITY)));

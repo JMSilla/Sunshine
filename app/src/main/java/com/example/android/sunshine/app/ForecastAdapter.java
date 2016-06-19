@@ -100,6 +100,7 @@ public class ForecastAdapter extends CursorAdapter {
 
         holder.textViewDate.setText(dateText);
 
+        holder.iconView.setContentDescription(cursor.getString(ForecastFragment.COL_WEATHER_DESC));
         holder.textViewForecast.setText(cursor.getString(ForecastFragment.COL_WEATHER_DESC));
         holder.textViewHigh.setText(Utility.formatTemperature(context, cursor.getDouble(
                 ForecastFragment.COL_WEATHER_MAX_TEMP), isMetric));
