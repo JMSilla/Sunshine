@@ -19,6 +19,7 @@ import android.widget.ListView;
 
 import com.example.android.sunshine.app.data.WeatherContract;
 import com.example.android.sunshine.app.data.WeatherProvider;
+import com.example.android.sunshine.app.service.SunshineService;
 
 public class ForecastFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
@@ -97,10 +98,13 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     }
 
     private void updateWeather() {
-        FetchWeatherTask weatherTask = new FetchWeatherTask(getActivity());
         String location = Utility.getPreferredLocation(getActivity());
         String apiKey = getString(R.string.api_key);
-        weatherTask.execute(location, apiKey);
+
+        Intent intent = new Intent(getActivity(), SunshineService.class);
+        intent.putExtra(SunshineService.LOCATION_KEY, location);
+        intent.putExtra(SunshineService.API_KEY, apiKey);
+        getActivity().startService(intent);
     }
 
     @Override
