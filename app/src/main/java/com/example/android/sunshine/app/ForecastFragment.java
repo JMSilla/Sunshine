@@ -98,6 +98,7 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     }
 
     private void updateWeather() {
+        selectedPosition = ListView.INVALID_POSITION;
         String location = Utility.getPreferredLocation(getActivity());
         String apiKey = getString(R.string.api_key);
 
