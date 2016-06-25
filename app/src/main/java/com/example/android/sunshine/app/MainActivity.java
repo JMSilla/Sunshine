@@ -10,6 +10,7 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.example.android.sunshine.app.data.WeatherContract;
+import com.example.android.sunshine.app.sync.SunshineSyncAdapter;
 
 public class MainActivity extends AppCompatActivity implements ForecastFragment.ForecastItemCallback {
     private static final String LOG_TAG = MainActivity.class.getSimpleName();
@@ -44,6 +45,7 @@ public class MainActivity extends AppCompatActivity implements ForecastFragment.
         forecastFragment.setForecastItemCallback(this);
         forecastFragment.setShowDifferentTodayElement(!twoPanes);
 
+        SunshineSyncAdapter.initializeSyncAdapter(this);
     }
 
     @Override

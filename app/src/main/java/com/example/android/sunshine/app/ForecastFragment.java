@@ -97,7 +97,7 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
 
     private void updateWeather() {
         selectedPosition = ListView.INVALID_POSITION;
-        SunshineSyncAdapter.syncImmediatly(getActivity());
+        SunshineSyncAdapter.syncImmediately(getActivity());
     }
 
     @Override
