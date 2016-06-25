@@ -83,10 +83,7 @@ public class Utility {
         if (julianDay == currentJulianDay) {
             String today = context.getString(R.string.today);
             int formatId = R.string.format_full_friendly_date;
-            return String.format(context.getString(
-                    formatId,
-                    today,
-                    getFormattedMonthDay(context, dateInMillis)));
+            return context.getString(formatId, today, getFormattedMonthDay(context, dateInMillis));
         } else if ( julianDay < currentJulianDay + 7 ) {
             // If the input date is less than a week in the future, just return the day name.
             return getDayName(context, dateInMillis);
@@ -103,7 +100,7 @@ public class Utility {
      *
      * @param context Context to use for resource localization
      * @param dateInMillis The date in milliseconds
-     * @return
+     * @return Day name
      */
     public static String getDayName(Context context, long dateInMillis) {
         // If the date is today, return the localized version of "Today" instead of the actual
@@ -243,5 +240,9 @@ public class Utility {
             return R.drawable.art_clouds;
         }
         return -1;
+    }
+
+    public static String getApiKey(Context context) {
+        return context.getString(R.string.api_key);
     }
 }

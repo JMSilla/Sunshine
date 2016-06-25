@@ -1,6 +1,5 @@
 package com.example.android.sunshine.app;
 
-import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -18,8 +17,7 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 
 import com.example.android.sunshine.app.data.WeatherContract;
-import com.example.android.sunshine.app.data.WeatherProvider;
-import com.example.android.sunshine.app.service.SunshineService;
+import com.example.android.sunshine.app.sync.SunshineSyncAdapter;
 
 public class ForecastFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
@@ -99,13 +97,7 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
 
     private void updateWeather() {
         selectedPosition = ListView.INVALID_POSITION;
-        String location = Utility.getPreferredLocation(getActivity());
-        String apiKey = getString(R.string.api_key);
-
-        Intent intent = new Intent(getActivity(), SunshineService.class);
-        intent.putExtra(SunshineService.LOCATION_KEY, location);
-        intent.putExtra(SunshineService.API_KEY, apiKey);
-        getActivity().startService(intent);
+        SunshineSyncAdapter.syncImmediatly(getActivity());
     }
 
     @Override

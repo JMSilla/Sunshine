@@ -1,18 +1,22 @@
-package com.example.android.sunshine.app.service;
+package com.example.android.sunshine.app.sync;
 
-import android.app.IntentService;
-import android.app.Service;
+import android.accounts.Account;
+import android.accounts.AccountManager;
+import android.content.AbstractThreadedSyncAdapter;
+import android.content.ContentProviderClient;
+import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.Intent;
+import android.content.SyncResult;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.IBinder;
-import android.support.annotation.Nullable;
+import android.os.Bundle;
 import android.text.format.Time;
 import android.util.Log;
 
+import com.example.android.sunshine.app.R;
+import com.example.android.sunshine.app.Utility;
 import com.example.android.sunshine.app.data.WeatherContract;
 
 import org.json.JSONArray;
@@ -27,23 +31,21 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Vector;
 
-public class SunshineService extends IntentService {
-    public static final String LOCATION_KEY = "LOCATION_KEY";
-    public static final String API_KEY = "API_KEY";
-    private final String LOG_TAG = SunshineService.class.getSimpleName();
+public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
+    private static final String LOG_TAG = SunshineSyncAdapter.class.getSimpleName();
 
-    public SunshineService() {
-        super(SunshineService.class.getSimpleName());
+    public SunshineSyncAdapter(Context context, boolean autoInitialize) {
+        super(context, autoInitialize);
     }
 
     @Override
-    protected void onHandleIntent(Intent intent) {
-        // If there's no zip code, there's nothing to look up.  Verify size of params.
-        if(!intent.hasExtra(LOCATION_KEY) || !intent.hasExtra(API_KEY))
-            return;
+    public void onPerformSync(Account account, Bundle extras, String authority,
+                              ContentProviderClient provider, SyncResult syncResult)
+    {
+        Log.d(LOG_TAG, "onPerformSyncCalled");
 
-        String locationQuery = intent.getStringExtra(LOCATION_KEY);
-        String apiKey = intent.getStringExtra(API_KEY);
+        String locationQuery = Utility.getPreferredLocation(this.getContext());
+        String apiKey = Utility.getApiKey(this.getContext());
 
         // These two need to be declared outside the try/catch
         // so that they can be closed in the finally block.
@@ -125,48 +127,6 @@ public class SunshineService extends IntentService {
                 }
             }
         }
-    }
-
-    /**
-     * Helper method to handle insertion of a new location in the weather database.
-     *
-     * @param locationSetting The location string used to request updates from the server.
-     * @param cityName A human-readable city name, e.g "Mountain View"
-     * @param lat the latitude of the city
-     * @param lon the longitude of the city
-     * @return the row ID of the added location.
-     */
-    long addLocation(String locationSetting, String cityName, double lat, double lon) {
-        // Students: First, check if the location with this city name exists in the db
-        // If it exists, return the current ID
-        // Otherwise, insert it using the content resolver and the base URI
-        long locationId;
-
-        Cursor cursor = this.getContentResolver().query(
-                WeatherContract.LocationEntry.CONTENT_URI,
-                new String[] {WeatherContract.LocationEntry._ID},
-                WeatherContract.LocationEntry.COLUMN_LOCATION_SETTING + " = ?",
-                new String[] {locationSetting},
-                null);
-
-        if (cursor != null && cursor.moveToFirst()) {
-            locationId = cursor.getLong(cursor.getColumnIndex(WeatherContract.LocationEntry._ID));
-            cursor.close();
-        }
-        else {
-            ContentValues values = new ContentValues();
-            values.put(WeatherContract.LocationEntry.COLUMN_LOCATION_SETTING, locationSetting);
-            values.put(WeatherContract.LocationEntry.COLUMN_CITY_NAME, cityName);
-            values.put(WeatherContract.LocationEntry.COLUMN_COORD_LAT, lat);
-            values.put(WeatherContract.LocationEntry.COLUMN_COORD_LONG, lon);
-
-            Uri insertUri = this.getContentResolver().insert(
-                    WeatherContract.LocationEntry.CONTENT_URI, values);
-
-            locationId = ContentUris.parseId(insertUri);
-        }
-
-        return locationId;
     }
 
     /**
@@ -304,7 +264,7 @@ public class SunshineService extends IntentService {
 
             if ( cVVector.size() > 0 ) {
                 // Student: call bulkInsert to add the weatherEntries to the database here
-                inserted = this.getContentResolver().bulkInsert(WeatherContract.WeatherEntry.CONTENT_URI,
+                inserted = this.getContext().getContentResolver().bulkInsert(WeatherContract.WeatherEntry.CONTENT_URI,
                         cVVector.toArray(new ContentValues[0]));
             }
 
@@ -313,5 +273,71 @@ public class SunshineService extends IntentService {
             Log.e(LOG_TAG, e.getMessage(), e);
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Helper method to handle insertion of a new location in the weather database.
+     *
+     * @param locationSetting The location string used to request updates from the server.
+     * @param cityName A human-readable city name, e.g "Mountain View"
+     * @param lat the latitude of the city
+     * @param lon the longitude of the city
+     * @return the row ID of the added location.
+     */
+    long addLocation(String locationSetting, String cityName, double lat, double lon) {
+        // Students: First, check if the location with this city name exists in the db
+        // If it exists, return the current ID
+        // Otherwise, insert it using the content resolver and the base URI
+        long locationId;
+
+        Cursor cursor = this.getContext().getContentResolver().query(
+                WeatherContract.LocationEntry.CONTENT_URI,
+                new String[] {WeatherContract.LocationEntry._ID},
+                WeatherContract.LocationEntry.COLUMN_LOCATION_SETTING + " = ?",
+                new String[] {locationSetting},
+                null);
+
+        if (cursor != null && cursor.moveToFirst()) {
+            locationId = cursor.getLong(cursor.getColumnIndex(WeatherContract.LocationEntry._ID));
+            cursor.close();
+        }
+        else {
+            ContentValues values = new ContentValues();
+            values.put(WeatherContract.LocationEntry.COLUMN_LOCATION_SETTING, locationSetting);
+            values.put(WeatherContract.LocationEntry.COLUMN_CITY_NAME, cityName);
+            values.put(WeatherContract.LocationEntry.COLUMN_COORD_LAT, lat);
+            values.put(WeatherContract.LocationEntry.COLUMN_COORD_LONG, lon);
+
+            Uri insertUri = this.getContext().getContentResolver().insert(
+                    WeatherContract.LocationEntry.CONTENT_URI, values);
+
+            locationId = ContentUris.parseId(insertUri);
+        }
+
+        return locationId;
+    }
+
+    public static void syncImmediatly(Context context) {
+        Bundle bundle = new Bundle();
+        bundle.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
+        bundle.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
+        ContentResolver.requestSync(getSyncAccount(context),
+                context.getString(R.string.content_authority), bundle);
+    }
+
+    public static Account getSyncAccount(Context context) {
+        AccountManager accountManager =
+                (AccountManager) context.getSystemService(Context.ACCOUNT_SERVICE);
+
+        Account newAccount = new Account(context.getString(R.string.app_name),
+                context.getString(R.string.sync_account_type));
+
+        if (accountManager.getPassword(newAccount) == null) {
+            if (!accountManager.addAccountExplicitly(newAccount, "" , null)) {
+                return null;
+            }
+        }
+
+        return newAccount;
     }
 }
