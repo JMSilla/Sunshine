@@ -1,5 +1,6 @@
 package com.example.android.sunshine.app;
 
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -15,6 +16,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.example.android.sunshine.app.data.WeatherContract;
 import com.example.android.sunshine.app.sync.SunshineSyncAdapter;
@@ -87,8 +89,8 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch(item.getItemId()) {
-            case R.id.action_refresh:
-                updateWeather();
+            case R.id.action_map:
+                openPreferredLocationInMap();
                 return true;
         }
 
@@ -98,6 +100,28 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     private void updateWeather() {
         selectedPosition = ListView.INVALID_POSITION;
         SunshineSyncAdapter.syncImmediately(getActivity());
+    }
+
+    private void openPreferredLocationInMap() {
+        if (forecastAdapter == null || forecastAdapter.getCursor() == null
+                || forecastAdapter.getCursor().getCount() == 0)
+        {
+            return;
+        }
+
+        Cursor firstItemCursor = forecastAdapter.getCursor();
+        firstItemCursor.moveToFirst();
+        String latitude = firstItemCursor.getString(COL_COORD_LAT);
+        String longitude = firstItemCursor.getString(COL_COORD_LONG);
+
+        Intent viewIntent = new Intent(Intent.ACTION_VIEW);
+        Uri viewMapUri =  Uri.parse("geo:" + latitude + "," + longitude).buildUpon().build();
+        viewIntent.setData(viewMapUri);
+
+        if (viewIntent.resolveActivity(getActivity().getPackageManager()) != null)
+            startActivity(viewIntent);
+        else
+            Toast.makeText(getActivity(), R.string.maps_app_not_found, Toast.LENGTH_LONG).show();
     }
 
     @Override
