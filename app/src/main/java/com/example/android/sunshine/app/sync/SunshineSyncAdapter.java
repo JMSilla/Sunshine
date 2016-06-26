@@ -299,18 +299,9 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                 // Student: call bulkInsert to add the weatherEntries to the database here
                 inserted = this.getContext().getContentResolver().bulkInsert(WeatherContract.WeatherEntry.CONTENT_URI,
                         cVVector.toArray(new ContentValues[0]));
+                long referenceTimeForDeletion = dayTime.setJulianDay(julianStartDay - 1);
 
-                getContext().getContentResolver().delete(WeatherContract.WeatherEntry.CONTENT_URI,
-                        WeatherContract.WeatherEntry.COLUMN_DATE + " <= ?",
-                        new String[] {Long.toString(dayTime.setJulianDay(julianStartDay - 1))});
-
-                getContext().getContentResolver().delete(WeatherContract.LocationEntry.CONTENT_URI,
-                        "NOT EXISTS (SELECT " + WeatherContract.WeatherEntry.COLUMN_WEATHER_ID
-                                + " FROM " + WeatherContract.WeatherEntry.TABLE_NAME
-                                + " WHERE " + WeatherContract.WeatherEntry.COLUMN_LOC_KEY + " = "
-                                + WeatherContract.LocationEntry.TABLE_NAME + "."
-                                + WeatherContract.LocationEntry._ID + ")", null);
-
+                deleteOldWeatherData(referenceTimeForDeletion);
                 notifyWeather();
             }
 
@@ -319,6 +310,19 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
             Log.e(LOG_TAG, e.getMessage(), e);
             e.printStackTrace();
         }
+    }
+
+    private void deleteOldWeatherData(Long referenceTime) {
+        getContext().getContentResolver().delete(WeatherContract.WeatherEntry.CONTENT_URI,
+                WeatherContract.WeatherEntry.COLUMN_DATE + " <= ?",
+                new String[] {referenceTime.toString()});
+
+        getContext().getContentResolver().delete(WeatherContract.LocationEntry.CONTENT_URI,
+                "NOT EXISTS (SELECT " + WeatherContract.WeatherEntry.COLUMN_WEATHER_ID
+                        + " FROM " + WeatherContract.WeatherEntry.TABLE_NAME
+                        + " WHERE " + WeatherContract.WeatherEntry.COLUMN_LOC_KEY + " = "
+                        + WeatherContract.LocationEntry.TABLE_NAME + "."
+                        + WeatherContract.LocationEntry._ID + ")", null);
     }
 
     /**
