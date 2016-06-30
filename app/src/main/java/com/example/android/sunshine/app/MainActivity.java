@@ -45,6 +45,8 @@ public class MainActivity extends AppCompatActivity implements ForecastFragment.
         forecastFragment.setForecastItemCallback(this);
         forecastFragment.setShowDifferentTodayElement(!twoPanes);
 
+        if (savedInstanceState == null)
+            SunshineSyncAdapter.syncImmediately(this);
         SunshineSyncAdapter.initializeSyncAdapter(this);
     }
 
